@@ -8,7 +8,7 @@ Gem::Specification.new do |spec|
 
   spec.summary       = "Jekyll plugin for Foam-style wikilink conversion"
   spec.description   = "Converts [[wikilinks]] to reference-style markdown links compatible with Foam"
-  spec.homepage      = "https://github.com/yourusername/jekyll-foam-links"
+  spec.homepage      = "https://github.com/time4Wiley/jekyll-foam-links"
   spec.license       = "MIT"
   spec.required_ruby_version = ">= 2.4.0"
 
