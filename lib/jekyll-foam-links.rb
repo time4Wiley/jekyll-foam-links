@@ -12,16 +12,18 @@ module Jekyll
       # Get the document content
       content = doc.content
       
-      # Regular expressions for matching wikilinks
+      # Regular expressions for matching wikilinks and tags
       wikilink_regex = /\[\[([^\]]+)\]\]/
       embed_regex = /!\[\[([^\]]+)\]\]/
+      tag_regex = /(?:^|[^#\w])#([a-zA-Z0-9][\w-]*)/
       
-      # Find all wikilinks and embedded wikilinks
+      # Find all wikilinks, embedded wikilinks, and tags
       wikilinks = content.scan(wikilink_regex).flatten
       embeds = content.scan(embed_regex).flatten
+      tags = content.scan(tag_regex).flatten
       
       # Combine and deduplicate
-      all_links = (wikilinks + embeds).uniq
+      all_links = (wikilinks + embeds + tags).uniq
       
       # Skip if no wikilinks found
       next if all_links.empty?
@@ -41,26 +43,36 @@ module Jekyll
         # Clean the link text
         link_text = link.strip
         
-        # Find the target document
-        target = find_target_document(link_text, markdown_files)
+        # Check if this is a tag
+        is_tag = tags.include?(link_text)
         
-        if target
-          # Generate relative path
-          relative_path = generate_relative_path(doc, target)
-          
-          # Get the title from the target document
-          title = extract_title(target)
-          
-          # Create the definition
-          definition = format_definition(link_text, relative_path, title)
+        if is_tag
+          # For tags, create a link to a tags page or tag-specific page
+          tag_path = "tags/#{link_text}"
+          definition = "[##{link_text}]: #{tag_path} \"Tag: #{link_text}\""
           definitions << definition
-          
-          # Store replacement for wikilink
-          link_replacements[link_text] = { path: relative_path, title: title }
         else
-          # For non-existent links, create placeholder definition
-          definition = "[#{link_text}]: #{link_text} \"#{link_text}\""
-          definitions << definition
+          # Find the target document
+          target = find_target_document(link_text, markdown_files)
+          
+          if target
+            # Generate relative path
+            relative_path = generate_relative_path(doc, target)
+            
+            # Get the title from the target document
+            title = extract_title(target)
+            
+            # Create the definition
+            definition = format_definition(link_text, relative_path, title)
+            definitions << definition
+            
+            # Store replacement for wikilink
+            link_replacements[link_text] = { path: relative_path, title: title }
+          else
+            # For non-existent links, create placeholder definition
+            definition = "[#{link_text}]: #{link_text} \"#{link_text}\""
+            definitions << definition
+          end
         end
       end
       
@@ -80,6 +92,13 @@ module Jekyll
       new_content.gsub!(embed_regex) do |match|
         link_text = $1.strip
         "![#{link_text}]"
+      end
+      
+      # Replace tags with reference-style links
+      new_content.gsub!(tag_regex) do |match|
+        prefix = match[0] == '#' ? '' : match[0]
+        tag_name = $1
+        "#{prefix}[##{tag_name}]"
       end
       
       # Add reference definitions at the end
