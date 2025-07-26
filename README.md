@@ -38,6 +38,7 @@ foam_links:
 
 The plugin will automatically convert:
 - `[[page-name]]` → `[page-name]` with reference definition
+- `[[target|display text]]` → `[display text](target-path)` (pipe notation)
 - `![[image-name]]` → `![image-name]` with reference definition
 - `#tag-name` → `[#tag-name]` with reference to `tags/tag-name`
 - `@mention-name` → `[@mention-name]` with reference to `mentions/mention-name`
@@ -55,6 +56,7 @@ Reference definitions are added at the end of each document between Foam-style m
 ## Features
 
 - Converts wikilinks to reference-style markdown links
+- Supports pipe notation for custom display text (`[[target|display]]`)
 - Converts hashtags to links pointing to `tags/` directory
 - Converts @ mentions to links pointing to `mentions/` directory
 - Generates relative paths between documents

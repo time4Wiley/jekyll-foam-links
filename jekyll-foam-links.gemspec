@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |spec|
   spec.name          = "jekyll-foam-links"
-  spec.version       = "0.3.0"
+  spec.version       = "0.3.1"
   spec.authors       = ["Your Name"]
   spec.email         = ["your.email@example.com"]
 
@@ -16,6 +16,12 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   spec.add_dependency "jekyll", ">= 3.7", "< 5.0"
+  
+  # Ruby 3.4 compatibility - these were previously default gems
+  spec.add_dependency "csv", "~> 3.0"
+  spec.add_dependency "base64", "~> 0.2.0"
+  spec.add_dependency "bigdecimal", "~> 3.1"
+  
   spec.add_development_dependency "bundler", "~> 2.0"
   spec.add_development_dependency "rake", "~> 13.0"
 end

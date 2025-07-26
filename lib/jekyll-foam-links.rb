@@ -4,7 +4,7 @@ require "jekyll"
 
 module Jekyll
   module FoamLinks
-    # Hook into the document processing pipeline
+    # Hook into the document processing pipeline for wikilinks
     Jekyll::Hooks.register [:pages, :documents], :pre_render do |doc|
       # Only process markdown files
       next unless doc.extname == ".md"
@@ -12,7 +12,7 @@ module Jekyll
       # Get the document content
       content = doc.content
       
-      # Regular expressions for matching wikilinks, tags, and mentions
+      # Regular expressions for matching wikilinks, tags, mentions
       wikilink_regex = /\[\[([^\]]+)\]\]/
       embed_regex = /!\[\[([^\]]+)\]\]/
       tag_regex = /(?:^|[^#\w])#([a-zA-Z0-9][\w-]*)/
@@ -163,6 +163,7 @@ module Jekyll
         "#{prefix}[@#{mention_name}]"
       end
       
+      
       # Add reference definitions at the end
       reference_section = [
         "",
@@ -234,5 +235,6 @@ module Jekyll
         "[#{label}]: #{url} \"#{title}\""
       end
     end
+    
   end
 end
