@@ -1,0 +1,8 @@
+title: Test Site
+description: Testing jekyll-foam-links with @ mentions
+
+plugins:
+  - jekyll-foam-links
+
+# Build settings
+markdown: kramdown

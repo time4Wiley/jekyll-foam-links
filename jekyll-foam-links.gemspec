@@ -2,12 +2,12 @@
 
 Gem::Specification.new do |spec|
   spec.name          = "jekyll-foam-links"
-  spec.version       = "0.1.0"
+  spec.version       = "0.3.0"
   spec.authors       = ["Your Name"]
   spec.email         = ["your.email@example.com"]
 
-  spec.summary       = "Jekyll plugin for Foam-style wikilink conversion"
-  spec.description   = "Converts [[wikilinks]] to reference-style markdown links compatible with Foam"
+  spec.summary       = "Jekyll plugin for Foam-style wikilink, hashtag, and mention conversion"
+  spec.description   = "Converts [[wikilinks]], #hashtags, and @mentions to reference-style markdown links with configurable URLs"
   spec.homepage      = "https://github.com/time4Wiley/jekyll-foam-links"
   spec.license       = "MIT"
   spec.required_ruby_version = ">= 2.4.0"

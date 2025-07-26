@@ -12,18 +12,20 @@ module Jekyll
       # Get the document content
       content = doc.content
       
-      # Regular expressions for matching wikilinks and tags
+      # Regular expressions for matching wikilinks, tags, and mentions
       wikilink_regex = /\[\[([^\]]+)\]\]/
       embed_regex = /!\[\[([^\]]+)\]\]/
       tag_regex = /(?:^|[^#\w])#([a-zA-Z0-9][\w-]*)/
+      mention_regex = /(?:^|[^@\w])@([a-zA-Z0-9][\w-]*)/
       
-      # Find all wikilinks, embedded wikilinks, and tags
+      # Find all wikilinks, embedded wikilinks, tags, and mentions
       wikilinks = content.scan(wikilink_regex).flatten
       embeds = content.scan(embed_regex).flatten
       tags = content.scan(tag_regex).flatten
+      mentions = content.scan(mention_regex).flatten
       
       # Combine and deduplicate
-      all_links = (wikilinks + embeds + tags).uniq
+      all_links = (wikilinks + embeds + tags + mentions).uniq
       
       # Skip if no wikilinks found
       next if all_links.empty?
@@ -43,17 +45,50 @@ module Jekyll
         # Clean the link text
         link_text = link.strip
         
-        # Check if this is a tag
+        # Handle pipe notation: extract target from [[target|display]]
+        if link_text.include?('|')
+          target_text = link_text.split('|', 2)[0].strip
+        else
+          target_text = link_text
+        end
+        
+        # Check if this is a tag or mention
         is_tag = tags.include?(link_text)
+        is_mention = mentions.include?(link_text)
         
         if is_tag
-          # For tags, create a link to a tags page or tag-specific page
-          tag_path = "tags/#{link_text}"
-          definition = "[##{link_text}]: #{tag_path} \"Tag: #{link_text}\""
+          # Check if we have a base URL for tags in the site config
+          config = doc.site.config['foam_links'] || {}
+          tag_base_url = config['tag_base_url']
+          
+          if tag_base_url
+            # Use full URL if configured
+            tag_url = "#{tag_base_url}#{link_text}"
+            definition = "[##{link_text}]: #{tag_url} \"Tag: #{link_text}\""
+          else
+            # Fall back to relative path
+            tag_path = "tags/#{link_text}"
+            definition = "[##{link_text}]: #{tag_path} \"Tag: #{link_text}\""
+          end
+          definitions << definition
+        elsif is_mention
+          # Check if we have a base URL for mentions in the site config
+          config = doc.site.config['foam_links'] || {}
+          mention_base_url = config['mention_base_url']
+          
+          if mention_base_url
+            # Use full URL if configured
+            mention_url = "#{mention_base_url}#{link_text}"
+            definition = "[@#{link_text}]: #{mention_url} \"Mention: #{link_text}\""
+          else
+            # Fall back to relative path
+            mention_path = "mentions/#{link_text}"
+            definition = "[@#{link_text}]: #{mention_path} \"Mention: #{link_text}\""
+          end
           definitions << definition
         else
           # Find the target document
-          target = find_target_document(link_text, markdown_files)
+          target = find_target_document(target_text, markdown_files)
           
           if target
             # Generate relative path
@@ -67,7 +102,7 @@ module Jekyll
             definitions << definition
             
             # Store replacement for wikilink
-            link_replacements[link_text] = { path: relative_path, title: title }
+            link_replacements[target_text] = { path: relative_path, title: title }
           else
             # For non-existent links, create placeholder definition
             definition = "[#{link_text}]: #{link_text} \"#{link_text}\""
@@ -85,13 +120,33 @@ module Jekyll
       # Replace regular wikilinks
       new_content.gsub!(wikilink_regex) do |match|
         link_text = $1.strip
-        "[#{link_text}]"
+        # Handle pipe notation: [[target|display text]]
+        if link_text.include?('|')
+          target, display = link_text.split('|', 2)
+          target = target.strip
+          display = display.strip
+          # Check if we have a valid replacement
+          if link_replacements[target]
+            "[#{display}](#{link_replacements[target][:path]})"
+          else
+            "[#{display}](#{target})"
+          end
+        else
+          "[#{link_text}]"
+        end
       end
       
       # Replace embedded wikilinks
       new_content.gsub!(embed_regex) do |match|
         link_text = $1.strip
-        "![#{link_text}]"
+        # Handle pipe notation for embeds
+        if link_text.include?('|')
+          target, display = link_text.split('|', 2)
+          target = target.strip
+          "![#{target}]"
+        else
+          "![#{link_text}]"
+        end
       end
       
       # Replace tags with reference-style links
@@ -99,6 +154,13 @@ module Jekyll
         prefix = match[0] == '#' ? '' : match[0]
         tag_name = $1
         "#{prefix}[##{tag_name}]"
+      end
+      
+      # Replace mentions with reference-style links
+      new_content.gsub!(mention_regex) do |match|
+        prefix = match[0] == '@' ? '' : match[0]
+        mention_name = $1
+        "#{prefix}[@#{mention_name}]"
       end
       
       # Add reference definitions at the end
