@@ -64,6 +64,7 @@ Reference definitions are added at the end of each document between Foam-style m
 - Handles non-existent links with placeholder definitions
 - Preserves original source files
 - Compatible with standard markdown parsers
+- **New in v0.4.0**: Automatically adds `target="_blank"` to external links
 
 ## License
 

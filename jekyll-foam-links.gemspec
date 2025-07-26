@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |spec|
   spec.name          = "jekyll-foam-links"
-  spec.version       = "0.3.1"
+  spec.version       = "0.4.0"
   spec.authors       = ["Your Name"]
   spec.email         = ["your.email@example.com"]
 

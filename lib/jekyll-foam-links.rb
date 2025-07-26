@@ -236,5 +236,44 @@ module Jekyll
       end
     end
     
+    # Hook for processing external links to open in new tab
+    Jekyll::Hooks.register [:pages, :documents], :post_convert do |doc|
+      # Only process markdown files that have been converted to HTML
+      next unless doc.extname == ".md"
+      
+      # Get the HTML content
+      content = doc.content
+      
+      # Regular expression to match links
+      # Matches <a href="..."> tags
+      link_regex = /<a\s+([^>]*href=["']([^"']+)["'][^>]*)>/i
+      
+      # Process all links
+      new_content = content.gsub(link_regex) do |match|
+        full_match = $&
+        attributes = $1
+        href = $2
+        
+        # Check if it's an external link
+        # External links start with http://, https://, or //
+        if href =~ /^(https?:)?\/\//i
+          # Check if target attribute already exists
+          if attributes =~ /target=/i
+            # Already has target, skip
+            full_match
+          else
+            # Add target="_blank" and rel="noopener noreferrer"
+            # Insert before the closing >
+            full_match.sub(/>$/, ' target="_blank" rel="noopener noreferrer">')
+          end
+        else
+          # Internal link, leave as is
+          full_match
+        end
+      end
+      
+      # Update the document content
+      doc.content = new_content
+    end
   end
 end
